@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Net;
-using System.Text;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using System.Collections.Generic;
-using System.Text.Json;
 
 namespace ServerConsoleApp
 {
@@ -16,19 +11,20 @@ namespace ServerConsoleApp
         const int port = 8080;
 
         static int maxReqAmnt;
+        static int clientsAmnt = 16;
 
         static void Main(string[] args)
         {
-            #region server configuration
+            #region SERVER_CONFIGURATION
             
-            Console.Write("[server] макс. кол-во запросов серверу : ");
-            maxReqAmnt = int.Parse(Console.ReadLine());
+            Console.Write("[server] макс. кол-во запросов серверу : "); maxReqAmnt = int.Parse(Console.ReadLine());
 
-            SemaphoreSlim JIexa = new SemaphoreSlim(maxReqAmnt, maxReqAmnt);
+            SemaphoreSlim reqController = new SemaphoreSlim(maxReqAmnt, maxReqAmnt);
             IPEndPoint tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
             tcpSocket.Bind(tcpEndPoint);
-            tcpSocket.Listen(16);
+            tcpSocket.Listen(clientsAmnt);
 
             Console.WriteLine("[server] запустился...\n" + new string('-', 50));
             
@@ -42,82 +38,42 @@ namespace ServerConsoleApp
                     {
                         //изначально запустим на 1 поток больше, чтобы он мониторил запросы, которые способствуют перегрузке сервера
                         Socket listener = tcpSocket.Accept();
+                        Request request = new Request();
+                        Response response = new Response();
 
-                        if(JIexa.CurrentCount == 0)
+                        if (reqController.CurrentCount == 0)
                         {
-                            SendResult(listener, ResultState.ServerOverloaded);
+                            //если "слоты для обработку" закончились, то скажем об этом клиенту, отправив обратно ServerOverloaded статус
+                            response.SendResponse(listener, ResultState.ServerOverloaded);
                         }
                         else
                         {
-                            JIexa.Wait(); //Лёха ждет, когда ему разрешат обработать запрос
-                            StringBuilder reqStr = new StringBuilder(); int reqStrSize = 0;
-                            byte[] buffer = new byte[128];
+                            reqController.Wait();
 
-                            #region listening from client
-                            ResultState respState = ResultState.NotChecked;
-                            do
-                            {
-                                try
-                                {
-                                    reqStrSize = listener.Receive(buffer);
-                                    reqStr.Append(Encoding.UTF8.GetString(buffer, 0, reqStrSize));
-                                }
-                                catch(SocketException)
-                                {
-                                    respState = ResultState.TryAgain;
-                                }
-                            }
-                            while (listener.Available > 0 && respState != ResultState.TryAgain);
-                            #endregion
-                            
-                            //эмулируем обработку в течение 2(!) секунд
+                            request.Listen(listener);
                             Thread.Sleep(2000);
 
                             //если не было ошибок, то определим полиндромность строки запроса
-                            if(respState != ResultState.TryAgain && respState != ResultState.ServerOverloaded)
-                                respState = checkPalindromeState(reqStr.ToString());
+                            if (request.State != ResultState.TryAgain && request.State != ResultState.ServerOverloaded)
+                            {
+                                request.State = checkPalindromeState(request);
+                            }
 
-                            SendResult(listener, respState);
-                            
-                            JIexa.Release();
+                            response.SendResponse(listener, request); 
+                            reqController.Release();
                         }
                     }
                 }).Start();
             }
         }
 
-        static void SendResult(Socket listener, ResultState state, string reqStr="")
-        {
-            string response = "";
-            if(state == ResultState.ServerOverloaded || state == ResultState.TryAgain)
-            {
-                
-                if(state == ResultState.ServerOverloaded)
-                    Console.WriteLine("[server] перегружен!");
-                else Console.WriteLine("[server] SocketException (прервано получение запроса клиента)!");
-                response = JsonSerializer.Serialize(state, typeof(ResultState));
-            }
-            else
-            {
-                //ResultState reqPolindromeState = checkPalindromeState(reqStr.ToString())
-                Console.WriteLine($"[server] получил запрос : {reqStr.ToString().Substring(0, reqStr.Length > 64 ? 64 : reqStr.Length) }... - {state}");
-                response = JsonSerializer.Serialize(state, typeof(ResultState));
-                //ShowResult
-            }
-
-            listener.Send(Encoding.UTF8.GetBytes(response));
-            Thread.Sleep(50); //TODO: добавить проверку на доставку сообщения (или это не надо из-за TCP???)
-            listener.Shutdown(SocketShutdown.Both);
-            listener.Close();
-        }
-
-        static ResultState checkPalindromeState(string str)
+        static ResultState checkPalindromeState(IRequest req)
         {
             ResultState result = ResultState.Palindrome;
 
-            for(int i=0; i < str.Length/2; ++i)
+            for(int i=0; i < req.Data.Length/2; ++i)
             {
-                if(str[i] != str[str.Length - 1 - i] && Char.ToLower(str[i]) != Char.ToLower(str[str.Length - 1 - i]))
+                if(req.Data[i] != req.Data[req.Data.Length - 1 - i] && Char.ToLower(req.Data[i]) != Char.ToLower(req.Data[req.Data.Length - 1 - i]))
                 {
                     result = ResultState.NotPalindrome;
                     return result;

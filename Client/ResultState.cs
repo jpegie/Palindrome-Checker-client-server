@@ -12,5 +12,7 @@ public enum ResultState
     [EnumMember(Value = "TryAgain")]
     TryAgain,
     [EnumMember(Value = "ServerOverloaded")]
-    ServerOverloaded
+    ServerOverloaded,
+    [EnumMember(Value = "SentToCheck")]
+    SentToCheck
 }

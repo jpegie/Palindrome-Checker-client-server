@@ -5,7 +5,6 @@ using System.Windows.Media;
 
 namespace Client.Converters
 {
-    [ValueConversion(typeof(ResultState), typeof(SolidColorBrush))]
     public sealed class ResultRectangleColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -13,6 +12,8 @@ namespace Client.Converters
             if ((ResultState)value == ResultState.Palindrome) return new SolidColorBrush(Colors.LightGreen);
             else if ((ResultState)value == ResultState.NotPalindrome) return new SolidColorBrush(Colors.IndianRed);
             else if ((ResultState)value == ResultState.ServerOverloaded) return new SolidColorBrush(Colors.Red);
+            else if((ResultState)value == ResultState.SentToCheck) return new SolidColorBrush(Colors.Yellow);
+            else if((ResultState)value == ResultState.TryAgain) return new SolidColorBrush(Colors.Gray);
             else return new SolidColorBrush(Colors.Orange);
         }
 

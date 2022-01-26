@@ -27,7 +27,8 @@
                 </Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
-        <Button x:Name="btn_sendAll" 
+        <Button x:Name="btn_sendAll"
+                Command="{Binding CheckAll}"
                 Content="Проверить все файлы на полиндромность" 
                 HorizontalAlignment="Left" 
                 Margin="220,495,0,0" 

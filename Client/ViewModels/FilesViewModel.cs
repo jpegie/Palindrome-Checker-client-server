@@ -1,47 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using Ookii.Dialogs.Wpf;
-using System.Windows.Input;
-using Client.Models;
+﻿using System.Collections.ObjectModel;
+
 namespace Client.ViewModels
 {
-    internal class FilesViewModel : INotifyPropertyChanged
+    internal class FilesViewModel
     {
-        ObservableCollection<File> files = new ObservableCollection<File>();
-        public event PropertyChangedEventHandler? PropertyChanged;
-        ClientModel clientM;
-        public FilesViewModel(ClientModel clientM)
-        {
-            this.clientM = clientM;
-        }
+        ObservableCollection<FileViewModel> files = new ObservableCollection<FileViewModel>();
+        ClientViewModel clientVM;
 
-        public ClientModel ClientM
+        public FilesViewModel(ClientViewModel clientVM)
         {
-            get { return clientM; }
-            set { clientM = value; }
+            this.clientVM = clientVM; 
         }
-        public void OnPropertyChanged(string prop = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-            }
-        }
-        public ObservableCollection<File> Files 
+        public ObservableCollection<FileViewModel> Files 
         { 
             get { return files; } 
-            set { files = value; } 
         }
         public void AddFile(string path)
         {
-            files.Add(new File(path, clientM));
+            files.Add(new FileViewModel(path, clientVM));
         }
         public void ClearFiles()
         {
