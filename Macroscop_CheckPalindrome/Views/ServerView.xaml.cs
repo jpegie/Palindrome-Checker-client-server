@@ -12,21 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Client.ViewModels;
-using Client.Models;
 
-namespace Client
+namespace Server
 {
-    public partial class MainWindow : Window
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class ServerView : Window
     {
-        public MainWindow()
+        public ServerView()
         {
             InitializeComponent();
-            ClientModel clientModel = new ClientModel();
-            FilesViewModel filesViewModel = new FilesViewModel(clientModel);
-            ClientViewModel clientViewModel = new ClientViewModel(filesViewModel);
-            listbox_files.DataContext = filesViewModel;
-            DataContext = clientViewModel;   
         }
     }
 }

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Macroscop_CheckPalindrome
+namespace Server.UserControls
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Логика взаимодействия для FileUserControl.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class RequestUserControl : UserControl
     {
-        public MainWindow()
+        public RequestUserControl()
         {
             InitializeComponent();
         }

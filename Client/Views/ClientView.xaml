@@ -9,7 +9,13 @@
         mc:Ignorable="d"
         Title="Client" Height="600" Width="800" ResizeMode="NoResize" SizeToContent="WidthAndHeight">
     <Grid>
-        <ListBox x:Name="listbox_files" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ItemsSource="{Binding Files}" HorizontalContentAlignment="Center" Margin="25,24,25,105" Width="750" Height="450">
+        <ListBox x:Name="listbox_files" 
+                 ScrollViewer.HorizontalScrollBarVisibility="Hidden" 
+                 ItemsSource="{Binding Files}" 
+                 HorizontalContentAlignment="Center" 
+                 Margin="25,24,25,105" 
+                 Width="750" 
+                 Height="450">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <controls:FileUserControl  />
@@ -21,7 +27,22 @@
                 </Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
-        <Button x:Name="btn_sendAll" Content="Проверить все файлы на полиндромы" HorizontalAlignment="Left" Margin="240,495,0,0" VerticalAlignment="Top" Height="55" Width="305" FontSize="16" Click="btn_sendAll_Click"/>
-        <Button x:Name="btn_setFolder" Command="{Binding SetFolder}" Content="Выбрать папку" HorizontalAlignment="Left" Margin="25,500,0,0" VerticalAlignment="Top" Height="45" Width="165" FontSize="16" Click="btn_setFolder_Click"/>
+        <Button x:Name="btn_sendAll" 
+                Content="Проверить все файлы на полиндромность" 
+                HorizontalAlignment="Left" 
+                Margin="220,495,0,0" 
+                VerticalAlignment="Top" 
+                Height="55" 
+                Width="345" 
+                FontSize="16"/>
+        <Button x:Name="btn_setFolder" 
+                Command="{Binding SetFolder}" 
+                Content="Выбрать папку" 
+                HorizontalAlignment="Left" 
+                Margin="25,500,0,0" 
+                VerticalAlignment="Top" 
+                Height="45" 
+                Width="165"
+                FontSize="16"/>
     </Grid>
 </Window>

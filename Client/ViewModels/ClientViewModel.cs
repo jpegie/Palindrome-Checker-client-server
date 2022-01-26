@@ -22,7 +22,11 @@ namespace Client.ViewModels
         {
             this.filesVM = filesVM;
         }
-        public string FolderPath { set { folder_path = value; } }
+        public string FolderPath 
+        {
+            set { folder_path = value; }
+            get { return folder_path; }
+        }
         private void ScanFolderForFiles()
         {
             string[] files_paths = Directory.GetFiles(folder_path, searchPattern: "*.txt");

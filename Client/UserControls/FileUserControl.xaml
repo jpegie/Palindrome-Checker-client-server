@@ -12,9 +12,44 @@
         <converters:ResultRectangleColorConverter x:Key="ResultRectangleColorConverter"/>
     </UserControl.Resources>
     <Grid Width="710">
-        <Button IsHitTestVisible="True" x:Name="btn_sendFIle" Content="Проверить" HorizontalAlignment="Left" Margin="610,0,0,0" VerticalAlignment="Center" Height="50" Width="100"/>
-        <TextBox x:Name="textBox_TextFromFile" Text="{Binding Text}" IsReadOnly="True" HorizontalAlignment="Left" Padding="10,5,10,5" TextWrapping="Wrap" VerticalAlignment="Center" Width="470" Height="50" AllowDrop="False"/>
-        <Rectangle x:Name="rect_result" HorizontalAlignment="Left" Height="50" Margin="482,0,0,0" Stroke="Black" VerticalAlignment="Center" Width="117" Fill ="{Binding IsPolindrome, Converter={StaticResource ResultRectangleColorConverter}}"/>
-        <Label x:Name="label_result_" Content="{Binding IsPolindrome, Converter={StaticResource ResultToStringConverter}}" HorizontalAlignment="Left" Margin="482,0,0,0" VerticalAlignment="Center" Height="50" Width="117" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="10"/>
+        <Button x:Name="btn_sendFIle"
+                Height="50" 
+                Width="100"
+                IsHitTestVisible="True" 
+                DataContext="{Binding ClientM}" 
+                Command="{Binding CheckPalindrome}" 
+                CommandParameter="{Binding ElementName=textBox_TextFromFile, Path=DataContext}"  
+                Content="Проверить" 
+                Margin="610,0,0,0" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Center"/>
+        <TextBox x:Name="textBox_TextFromFile" 
+                 Width="470" 
+                 Height="50" 
+                 Text="{Binding PreviewText}" 
+                 IsReadOnly="True" 
+                 HorizontalAlignment="Left" 
+                 Padding="10,5,10,5" 
+                 TextWrapping="Wrap"
+                 VerticalAlignment="Center" 
+                 AllowDrop="False"/>
+        <Rectangle x:Name="rect_result" 
+                   HorizontalAlignment="Left" 
+                   Height="50" 
+                   Margin="482,0,0,0" 
+                   Stroke="Black" 
+                   VerticalAlignment="Center" 
+                   Width="117" 
+                   Fill ="{Binding IsPalindrome, Converter={StaticResource ResultRectangleColorConverter}}"/>
+        <Label x:Name="label_result_" 
+               Content="{Binding IsPalindrome, Converter={StaticResource ResultToStringConverter}}" 
+               HorizontalAlignment="Left" 
+               Margin="482,0,0,0" 
+               VerticalAlignment="Center" 
+               Height="50"
+               Width="117" 
+               HorizontalContentAlignment="Center" 
+               VerticalContentAlignment="Center" 
+               FontSize="10"/>
     </Grid>
 </UserControl>
