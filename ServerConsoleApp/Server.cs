@@ -40,92 +40,75 @@ namespace ServerConsoleApp
                 {
                     while (true)
                     {
+                        //изначально запустим на 1 поток больше, чтобы он мониторил запросы, которые способствуют перегрузке сервера
                         Socket listener = tcpSocket.Accept();
 
                         if(JIexa.CurrentCount == 0)
                         {
-                            Console.WriteLine("[server] перегружен!");
-
-                            string response = JsonSerializer.Serialize(ResultState.ServerOverloaded, typeof(ResultState));
-                            //if(listener.SendAsync(tcpEndPoint, SocketFlags.None);
-                            listener.Send(Encoding.UTF8.GetBytes(response));
-                            Thread.Sleep(50); //вместо проверки на доставку сообщения...Как реализовать по-другому???
-                            listener.Shutdown(SocketShutdown.Both);
-                            listener.Close();
+                            SendResult(listener, ResultState.ServerOverloaded);
                         }
                         else
                         {
-                            JIexa.Wait();
+                            JIexa.Wait(); //Лёха ждет, когда ему разрешат обработать запрос
                             StringBuilder reqStr = new StringBuilder(); int reqStrSize = 0;
                             byte[] buffer = new byte[128];
 
+                            #region listening from client
+                            ResultState respState = ResultState.NotChecked;
                             do
                             {
-                                reqStrSize = listener.Receive(buffer);
-                                reqStr.Append(Encoding.UTF8.GetString(buffer, 0, reqStrSize));
+                                try
+                                {
+                                    reqStrSize = listener.Receive(buffer);
+                                    reqStr.Append(Encoding.UTF8.GetString(buffer, 0, reqStrSize));
+                                }
+                                catch(SocketException)
+                                {
+                                    respState = ResultState.TryAgain;
+                                }
                             }
-                            while (listener.Available > 0);
-
-                            #region sending
-
+                            while (listener.Available > 0 && respState != ResultState.TryAgain);
+                            #endregion
+                            
+                            //эмулируем обработку в течение 2(!) секунд
                             Thread.Sleep(2000);
 
-                            ResultState reqPolindromeState = checkPalindromeState(reqStr.ToString());
+                            //если не было ошибок, то определим полиндромность строки запроса
+                            if(respState != ResultState.TryAgain && respState != ResultState.ServerOverloaded)
+                                respState = checkPalindromeState(reqStr.ToString());
 
-                            string response = JsonSerializer.Serialize(reqPolindromeState, typeof(ResultState));
-
-                            listener.Send(Encoding.UTF8.GetBytes(response));
-                            listener.Shutdown(SocketShutdown.Both);
-                            listener.Close();
-
-                            Console.WriteLine($"[server] получил запрос : {reqStr.ToString().Substring(0, reqStr.Length > 64 ? 64 : reqStr.Length) }... - {reqPolindromeState}");
-                            #endregion
-
+                            SendResult(listener, respState);
+                            
                             JIexa.Release();
                         }
-                        /*if (JIexa.CurrentCount <= maxReqAmnt)
-                        {
-                            JIexa.Wait();
-                            StringBuilder reqStr = new StringBuilder(); int reqStrSize = 0;
-                            byte[] buffer = new byte[128];
-
-                            do
-                            {
-                                reqStrSize = listener.Receive(buffer);
-                                reqStr.Append(Encoding.UTF8.GetString(buffer, 0, reqStrSize));
-                            }
-                            while (listener.Available > 0);
-
-                            #region sending
-
-                            Thread.Sleep(2000);
-
-                            ResultState reqPolindromeState = checkPalindromeState(reqStr.ToString());
-
-                            string response = JsonSerializer.Serialize(reqPolindromeState, typeof(ResultState));
-
-                            listener.Send(Encoding.UTF8.GetBytes(response));
-                            listener.Shutdown(SocketShutdown.Both);
-                            listener.Close();
-
-                            Console.WriteLine($"[server] получил запрос : {reqStr.ToString().Substring(0, reqStr.Length > 64 ? 64 : reqStr.Length) }... - {reqPolindromeState}");
-                            #endregion
-
-                            JIexa.Release();
-                        }
-                        else
-                        {
-                            Console.WriteLine("[server] перегружен!");
-
-                            string response = JsonSerializer.Serialize(ResultState.ServerOverloaded, typeof(ResultState));
-
-                            listener.Send(Encoding.UTF8.GetBytes(response));
-                            listener.Shutdown(SocketShutdown.Both);
-                            listener.Close();
-                        }*/
                     }
                 }).Start();
             }
+        }
+
+        static void SendResult(Socket listener, ResultState state, string reqStr="")
+        {
+            string response = "";
+            if(state == ResultState.ServerOverloaded || state == ResultState.TryAgain)
+            {
+                
+                if(state == ResultState.ServerOverloaded)
+                    Console.WriteLine("[server] перегружен!");
+                else Console.WriteLine("[server] SocketException (прервано получение запроса клиента)!");
+                response = JsonSerializer.Serialize(state, typeof(ResultState));
+            }
+            else
+            {
+                //ResultState reqPolindromeState = checkPalindromeState(reqStr.ToString())
+                Console.WriteLine($"[server] получил запрос : {reqStr.ToString().Substring(0, reqStr.Length > 64 ? 64 : reqStr.Length) }... - {state}");
+                response = JsonSerializer.Serialize(state, typeof(ResultState));
+                //ShowResult
+            }
+
+            listener.Send(Encoding.UTF8.GetBytes(response));
+            Thread.Sleep(50); //TODO: добавить проверку на доставку сообщения (или это не надо из-за TCP???)
+            listener.Shutdown(SocketShutdown.Both);
+            listener.Close();
         }
 
         static ResultState checkPalindromeState(string str)
