@@ -34,7 +34,7 @@ namespace ServerConsoleApp
             
             #endregion
 
-            for (int i = 0; i < maxReqAmnt + 1; ++i)
+            for (int i = 0; i < maxReqAmnt*2; ++i)
             {
                 new Thread(() =>
                 {
@@ -47,8 +47,9 @@ namespace ServerConsoleApp
                             Console.WriteLine("[server] перегружен!");
 
                             string response = JsonSerializer.Serialize(ResultState.ServerOverloaded, typeof(ResultState));
-
+                            //if(listener.SendAsync(tcpEndPoint, SocketFlags.None);
                             listener.Send(Encoding.UTF8.GetBytes(response));
+                            Thread.Sleep(50); //вместо проверки на доставку сообщения...Как реализовать по-другому???
                             listener.Shutdown(SocketShutdown.Both);
                             listener.Close();
                         }
