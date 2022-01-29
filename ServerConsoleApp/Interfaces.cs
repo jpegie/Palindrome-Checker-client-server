@@ -8,13 +8,11 @@ namespace ServerConsoleApp
     }
     interface IRequest : IStatable
     {
-        string Data { get; set; }
-        void Listen(Socket listener);
+        string Data { get; set; }  
     }
-    interface IResponse
+    interface IResponseSender
     {
-        bool SendResponse(Socket listener, IRequest request);
-        bool SendResponse(Socket listener, ResultState state);
-        void SendResponse(Socket listener, string response);
+        bool SendStateAsResponse(ResultState state);
+        void SendStringAsResponse(string response);
     }
 }
