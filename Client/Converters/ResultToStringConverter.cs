@@ -8,11 +8,11 @@ namespace Client.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((ResultState)value == ResultState.Palindrome) return "Палиндром";
-            else if ((ResultState)value == ResultState.NotPalindrome) return "Не палиндром";
-            else if ((ResultState)value == ResultState.ServerOverloaded) return "Сервер перегружен,\nпопробуйте позже";
-            else if ((ResultState)value == ResultState.SentToCheck) return "Отправлено\nна проверку";
-            else if ((ResultState)value == ResultState.TryAgain) return "Попробуйте снова";
+            if ((States)value == States.Palindrome) return "Палиндром";
+            else if ((States)value == States.NotPalindrome) return "Не палиндром";
+            else if ((States)value == States.ServerOverloaded) return "Сервер перегружен,\nпопробуйте позже";
+            else if ((States)value == States.SentToCheck) return "Отправлено\nна проверку";
+            else if ((States)value == States.TryAgain) return "Попробуйте снова";
             else return "Не проверено";
         }
 

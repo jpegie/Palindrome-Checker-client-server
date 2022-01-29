@@ -9,11 +9,11 @@ namespace Client.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((ResultState)value == ResultState.Palindrome) return new SolidColorBrush(Colors.LightGreen);
-            else if ((ResultState)value == ResultState.NotPalindrome) return new SolidColorBrush(Colors.IndianRed);
-            else if ((ResultState)value == ResultState.ServerOverloaded) return new SolidColorBrush(Colors.Red);
-            else if((ResultState)value == ResultState.SentToCheck) return new SolidColorBrush(Colors.Yellow);
-            else if((ResultState)value == ResultState.TryAgain) return new SolidColorBrush(Colors.Gray);
+            if ((States)value == States.Palindrome) return new SolidColorBrush(Colors.LightGreen);
+            else if ((States)value == States.NotPalindrome) return new SolidColorBrush(Colors.IndianRed);
+            else if ((States)value == States.ServerOverloaded) return new SolidColorBrush(Colors.Red);
+            else if((States)value == States.SentToCheck) return new SolidColorBrush(Colors.Yellow);
+            else if((States)value == States.TryAgain) return new SolidColorBrush(Colors.Gray);
             else return new SolidColorBrush(Colors.Orange);
         }
 

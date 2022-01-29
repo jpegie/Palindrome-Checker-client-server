@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 [Serializable]
-public enum ResultState
+public enum States
 {
     [EnumMember(Value = "Palindrome")]
     Palindrome,

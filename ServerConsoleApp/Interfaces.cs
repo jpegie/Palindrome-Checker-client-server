@@ -4,7 +4,7 @@ namespace ServerConsoleApp
 {
     interface IStatable
     {
-        ResultState State { get; set; }
+        States State { get; set; }
     }
     interface IRequest : IStatable
     {
@@ -12,7 +12,7 @@ namespace ServerConsoleApp
     }
     interface IResponseSender
     {
-        bool SendStateAsResponse(ResultState state);
+        bool SendStateAsResponse(States state);
         void SendStringAsResponse(string response);
     }
 }

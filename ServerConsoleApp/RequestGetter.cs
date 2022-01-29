@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace ServerConsoleApp
 {
-    internal class RequestListener
+    internal class RequestGetter
     {
         Socket listener;
         IRequest request;
 
-        public RequestListener(Socket listener)
+        public RequestGetter(Socket listener)
         {
             this.listener = listener;
         }
         public IRequest GetRequest()
         {
             request = new Request();
-            request.State = ResultState.NotChecked;
+            request.State = States.NotChecked;
             StringBuilder request_str = new StringBuilder(); int reqStrSize = 0;
             byte[] request_buffer = new byte[128]; //буфер, в который записывается полученный запрос от клиента
             
@@ -34,10 +34,10 @@ namespace ServerConsoleApp
                 }
                 catch (SocketException)
                 {
-                    request.State = ResultState.TryAgain;
+                    request.State = States.TryAgain;
                 }
             }
-            while (listener.Available > 0 && request.State != ResultState.TryAgain);
+            while (listener.Available > 0 && request.State != States.TryAgain);
             request.Data = request_str.ToString();
             return request;
         }

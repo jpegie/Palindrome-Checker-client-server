@@ -99,7 +99,7 @@ namespace Client.ViewModels
 
         public async Task SendToCheckPalindrome(FileViewModel file)
         {
-            file.IsPalindrome = ResultState.SentToCheck; //поменяю статус файла на "Отправлен на проверку"
+            file.IsPalindrome = States.SentToCheck; //поменяю статус файла на "Отправлен на проверку"
             file.ButtonEnabled = false; //выключу кнопку
             await Task.Run(async () =>
             {
@@ -115,7 +115,7 @@ namespace Client.ViewModels
                         "Попробуйте позже.",
                         "Ошибка");
                     file.ButtonEnabled = true; //после неудачи активирую кнопку снова 
-                    file.IsPalindrome = ResultState.TryAgain; //после возникновения ошибки статус файла сменю на TryAgain
+                    file.IsPalindrome = States.TryAgain; //после возникновения ошибки статус файла сменю на TryAgain
                     return;
                 }
 
@@ -134,17 +134,17 @@ namespace Client.ViewModels
                     {
                         MessageBox.Show(ex.Message, "Ошибка");
                         file.ButtonEnabled = true; //после неудачи активирую кнопку снова 
-                        file.IsPalindrome = ResultState.TryAgain; //после возникновения ошибки статус файла сменю на TryAgain
+                        file.IsPalindrome = States.TryAgain; //после возникновения ошибки статус файла сменю на TryAgain
                     }
                 }
                 while (tcpSocket.Available > 0);
 
                 if (response.Length > 0)
                 {
-                    ResultState respState;
+                    States respState;
                     try
                     {
-                        respState = (ResultState)JsonSerializer.Deserialize(response.ToString(), typeof(ResultState));
+                        respState = (States)JsonSerializer.Deserialize(response.ToString(), typeof(States));
                         tcpSocket.Shutdown(SocketShutdown.Both);
                         tcpSocket.Close();
                         file.IsPalindrome = respState;

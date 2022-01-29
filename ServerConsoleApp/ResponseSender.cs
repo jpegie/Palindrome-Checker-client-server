@@ -18,9 +18,9 @@ namespace ServerConsoleApp
         /// </summary>
         /// <param name="state">Состояние запроса</param>
         /// <returns></returns>
-        public bool SendStateAsResponse(ResultState state)
+        public bool SendStateAsResponse(States state)
         {
-            string response = JsonSerializer.Serialize(state, typeof(ResultState));
+            string response = JsonSerializer.Serialize(state, typeof(States));
             try
             {
                 SendStringAsResponse(response);

@@ -19,7 +19,7 @@ namespace ServerConsoleApp
             
             Console.Write("[server] макс. кол-во запросов серверу : "); maxReqAmnt = int.Parse(Console.ReadLine());
 
-            SemaphoreSlim GetAbleToGetRequest = new SemaphoreSlim(maxReqAmnt, maxReqAmnt);
+            SemaphoreSlim requestLimiter = new SemaphoreSlim(maxReqAmnt, maxReqAmnt);
             IPEndPoint tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             
@@ -38,25 +38,25 @@ namespace ServerConsoleApp
                     {
                         //изначально запустим на 1 поток больше, чтобы он мониторил запросы, которые способствуют перегрузке сервера
                         Socket socketRequestListener = tcpSocket.Accept();
-                        RequestListener requestListener = new RequestListener(socketRequestListener);
+                        RequestGetter requestGetter = new RequestGetter(socketRequestListener);
 
                         IRequest request = new Request();
                         IResponseSender responseSender = new ResponseSender(socketRequestListener);
                         
-                        if (GetAbleToGetRequest.CurrentCount == 0)
+                        if (requestLimiter.CurrentCount == 0)
                         {   
-                            responseSender.SendStateAsResponse(ResultState.ServerOverloaded); //если "слоты для обработку" закончились, то скажем об этом клиенту, отправив обратно ServerOverloaded статус
+                            responseSender.SendStateAsResponse(States.ServerOverloaded); //если "слоты для обработку" закончились, то скажем об этом клиенту, отправив обратно ServerOverloaded статус
                         }
                         else
                         {
-                            GetAbleToGetRequest.Wait();
-                            request = requestListener.GetRequest();
-                            if (request.State != ResultState.TryAgain && request.State != ResultState.ServerOverloaded) //если не было ошибок, то определим полиндромность строки запроса
+                            requestLimiter.Wait();
+                            request = requestGetter.GetRequest();
+                            if (request.State != States.TryAgain && request.State != States.ServerOverloaded) //если не было ошибок, то определим полиндромность строки запроса
                             {
                                 request.State = new PalindromeChecker(request).GetPalindromeState();
                             }
                             responseSender.SendStateAsResponse(request.State); 
-                            GetAbleToGetRequest.Release();
+                            requestLimiter.Release();
                         }
                     }
                 }).Start();

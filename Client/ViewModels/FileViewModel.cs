@@ -7,7 +7,7 @@ namespace Client
 {
     internal class FileViewModel : INotifyPropertyChanged
     {
-        ResultState textPalindromeState = ResultState.NotChecked;
+        States textPalindromeState = States.NotChecked;
         ClientViewModel clientVM;
 
         string path = "";
@@ -36,7 +36,7 @@ namespace Client
         {
             get { return clientVM; }
         }
-        public ResultState IsPalindrome
+        public States IsPalindrome
         {
             get { return textPalindromeState; }
             set { textPalindromeState = value; OnPropertyChanged("IsPalindrome"); }

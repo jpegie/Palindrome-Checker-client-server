@@ -6,13 +6,13 @@ namespace ServerConsoleApp
     internal class Request : IRequest
     {
         string data = "";
-        ResultState state;
+        States state;
         public string Data
         {
             get { return data; }
             set { data = value; }
         }
-        public ResultState State
+        public States State
         {
             get { return state; }
             set { state = value; }
