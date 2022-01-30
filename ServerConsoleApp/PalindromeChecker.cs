@@ -3,17 +3,18 @@ using System.Threading;
 
 namespace ServerConsoleApp
 {
-    internal class PalindromeChecker
+    internal static class PalindromeChecker
     {
-        IRequest request;
-        public PalindromeChecker(IRequest request)
-        {
-            this.request = request;
-        }
-        public States GetPalindromeState()
+        public static States GetPalindromeState(IRequest request)
         {
             Thread.Sleep(2000); //имитируем долгую обработку 
             States result = States.Palindrome;
+
+            if(request.Data == "")
+            {
+                result = States.NotPalindrome;
+                return result;
+            }
 
             for (int i = 0; i < request.Data.Length / 2; ++i)
             {

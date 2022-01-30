@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace ServerConsoleApp
@@ -10,57 +10,77 @@ namespace ServerConsoleApp
         const string ip = "127.0.0.1";
         const int port = 8080;
 
-        static int maxRequestsAmnt = 0;
-        static int clientsAmnt = 16;
+        Socket tcpSocket;
+        IPEndPoint tcpEndPoint;
 
-        static void Main(string[] args)
+        int maxRequestsAmnt = 0;
+        int clientsAmnt = 16;
+
+        SemaphoreSlim freeThreadsHandlingRequests;
+
+        public Server(int maxRequestsAmnt)
         {
-            #region SERVER_CONFIGURATION
-            
-            Console.Write("[server] макс. кол-во запросов серверу : "); maxRequestsAmnt = int.Parse(Console.ReadLine());
+            this.maxRequestsAmnt = maxRequestsAmnt;
+            Configure();
+        }
+        
+        public void Start()
+        {
+            StartRequestsMonitoringThread(); 
+        }
 
-            SemaphoreSlim freeStreamsHandlingRequests = new SemaphoreSlim(maxRequestsAmnt, maxRequestsAmnt);
-            IPEndPoint tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
-            Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            
+        private void Configure()
+        {
+            freeThreadsHandlingRequests = new SemaphoreSlim(maxRequestsAmnt, maxRequestsAmnt);
+            tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             tcpSocket.Bind(tcpEndPoint);
             tcpSocket.Listen(clientsAmnt);
-
-            Console.WriteLine("[server] запустился...");
-            
-            #endregion
-
-            for (int i = 0; i < maxRequestsAmnt + 1; ++i)
+            PrintMessage("сервер запустился");
+        }
+        private void StartRequestsMonitoringThread()
+        {
+            new Thread(MonitorForRequests).Start();
+        }
+        private void MonitorForRequests()
+        {
+            while (true)
             {
-                new Thread(() =>
-                {
-                    while (true)
-                    {
-                        //изначально запустим на 1 поток больше, чтобы он мониторил запросы, которые способствуют перегрузке сервера
-                        Socket clientSocket = tcpSocket.Accept();
-                        RequestGetter requestGetter = new RequestGetter(clientSocket);
+                Socket requestListener = tcpSocket.Accept();
 
-                        IRequest request = new Request();
-                        IResponseSender responseSender = new ResponseSender(clientSocket);
-                        
-                        if (freeStreamsHandlingRequests.CurrentCount == 0)
-                        {   
-                            responseSender.SendStateAsResponse(States.ServerOverloaded); //если "слоты для обработку" закончились, то скажем об этом клиенту, отправив обратно ServerOverloaded статус
+                RequestHandler requestHandler = new RequestHandler(requestListener);
+                ResponseSender responseSender = new ResponseSender(requestListener);
+
+                if (freeThreadsHandlingRequests.CurrentCount != 0)
+                { 
+                    new Thread(() =>
+                    {
+                        freeThreadsHandlingRequests.Wait();
+
+                        Request handledRequest = (Request)requestHandler.Handle();
+                        if (handledRequest != null)
+                        {
+                            handledRequest.State = PalindromeChecker.GetPalindromeState(handledRequest);
+                            responseSender.SendStateAsResponse(handledRequest.State);
                         }
                         else
                         {
-                            freeStreamsHandlingRequests.Wait();
-                            request = requestGetter.GetRequest();
-                            if (request.State != States.TryAgain && request.State != States.ServerOverloaded) //если не было ошибок, то определим полиндромность строки запроса
-                            {
-                                request.State = new PalindromeChecker(request).GetPalindromeState();
-                            }
-                            responseSender.SendStateAsResponse(request.State); 
-                            freeStreamsHandlingRequests.Release();
+                            responseSender.SendStateAsResponse(States.TryAgain);
                         }
-                    }
-                }).Start();
+
+                        freeThreadsHandlingRequests.Release();
+                    }).Start();  
+                }
+                else
+                {
+                    responseSender.SendStateAsResponse(States.ServerOverloaded);
+                }
             }
-        }        
+        }
+        private void PrintMessage(string message)
+        {
+            Console.WriteLine($"[server] {message}...");
+        }
     }
 }
