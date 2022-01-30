@@ -119,7 +119,8 @@ namespace Client.ViewModels
                     return;
                 }
 
-                tcpSocket.Send(Encoding.UTF8.GetBytes(file.WholeText));
+                string request = (string)JsonSerializer.Serialize(file.WholeText, typeof(string));
+                tcpSocket.Send(Encoding.UTF8.GetBytes(request));
                 byte[] buffer = new byte[128];
                 int respStrSize = 0;
                 StringBuilder response = new StringBuilder();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ServerConsoleApp
@@ -18,14 +19,14 @@ namespace ServerConsoleApp
         {
             Request request = new Request();
             request.State = States.NotChecked;
-            StringBuilder request_str = new StringBuilder(); int reqStrSize = 0;
+            StringBuilder requestedJson = new StringBuilder(); int reqStrSize = 0;
             byte[] request_buffer = new byte[128];
             do
             {
                 try
                 {
                     reqStrSize = requestListener.Receive(request_buffer);
-                    request_str.Append(Encoding.UTF8.GetString(request_buffer, 0, reqStrSize));
+                    requestedJson.Append(Encoding.UTF8.GetString(request_buffer, 0, reqStrSize));
                 }
                 catch (SocketException)
                 {
@@ -33,7 +34,7 @@ namespace ServerConsoleApp
                 }
             }
             while (requestListener.Available > 0 && request.State != States.TryAgain);
-            request.Data = request_str.ToString();
+            request.Data = (String)JsonSerializer.Deserialize(requestedJson.ToString(), typeof(string));
             return request;
         }
     }
